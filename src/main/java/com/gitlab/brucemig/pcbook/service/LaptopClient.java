@@ -1,15 +1,13 @@
 package com.gitlab.brucemig.pcbook.service;
 
-import com.gitlab.brucemig.pcbook.pb.CreateLaptopRequest;
-import com.gitlab.brucemig.pcbook.pb.CreateLaptopResponse;
-import com.gitlab.brucemig.pcbook.pb.Laptop;
-import com.gitlab.brucemig.pcbook.pb.LaptopServiceGrpc;
+import com.gitlab.brucemig.pcbook.pb.*;
 import com.gitlab.brucemig.pcbook.sample.Generator;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,12 +54,50 @@ public class LaptopClient {
         LaptopClient client = new LaptopClient("0.0.0.0", 8080);
 
         Generator generator = new Generator();
-        Laptop laptop = generator.NewLaptop().toBuilder().setId("").build();
 
         try {
-            client.createLaptop(laptop);
+            for (int i = 0; i < 10; i++) {
+                Laptop laptop = generator.NewLaptop();
+                client.createLaptop(laptop);
+
+                Memory minRam = Memory.newBuilder()
+                        .setValue(8)
+                        .setUnit(Memory.Unit.GIGABYTE)
+                        .build();
+
+                Filter filter = Filter.newBuilder()
+                        .setMaxPriceUsd(3000)
+                        .setMinCpuCores(4)
+                        .setMinCpuGhz(2.5)
+                        .setMinRam(minRam)
+                        .build();
+
+                client.SearchLaptop(filter);
+            }
         } finally {
             client.shutdown();
         }
+    }
+
+    private void SearchLaptop(Filter filter) {
+        logger.info("search started");
+
+        SearchLaptopRequest request = SearchLaptopRequest.newBuilder().setFilter(filter).build();
+        try {
+            Iterator<SearchLaptopResponse> responseIterator = blockingStub
+                    .withDeadlineAfter(10, TimeUnit.SECONDS)
+                    .searchLaptop(request);
+
+            while (responseIterator.hasNext()) {
+                SearchLaptopResponse response = responseIterator.next();
+                Laptop laptop = response.getLaptop();
+                logger.info("- found: " + laptop.getId());
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "request failed: " + e.getMessage());
+            return;
+        }
+
+        logger.info("search completed");
     }
 }
