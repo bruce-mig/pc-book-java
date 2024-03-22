@@ -1,4 +1,4 @@
-## The PC book application
+## pc-book-java
 
 PC book is an application to manage and search laptop configurations. It provides 4 gRPC APIs:
 
@@ -35,58 +35,3 @@ PC book is an application to manage and search laptop configurations. It provide
     The input of the API is a stream of requests, each with a laptop ID and a score.
 
     The API will returns a stream of responses, each contains a laptop ID, the number of times that laptop was rated, and the average rated score.
-
-## Setup development environment
-
-- Install `protoc`:
-
-```bash
-brew install protobuf
-```
-
-- Install `protoc-gen-go` and `protoc-gen-go-grpc`
-
-```bash
-go get google.golang.org/protobuf/cmd/protoc-gen-go
-go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
-```
-
-- Install `protoc-gen-grpc-gateway` and `protoc-gen-openapiv2`
-
-```bash
-go get github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-go get github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-```
-
-## How to run
-
-- Generate codes from proto files:
-
-```bash
-make gen
-```
-
-- Clean up generated codes in `pb` and `swagger` folders:
-
-```bash
-make clean
-```
-
-- Run unit tests:
-
-```bash
-make test
-```
-
-- Run server and client:
-
-```bash
-make server
-make client
-```
-
-- Generate SSL/TLS certificates:
-
-```bash
-make cert
-```
